@@ -144,6 +144,8 @@ syscall(void)
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
+    
+    printk("Tien trinh '%s' (PID: %d) goi Syscall so: %d\n", p->name, p->pid, num); //Tương tác user - kernel
     p->trapframe->a0 = syscalls[num]();
   } else {
     printk("%d %s: unknown sys call %d\n", p->pid, p->name, num);

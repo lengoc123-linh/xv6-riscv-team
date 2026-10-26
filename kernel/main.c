@@ -16,6 +16,9 @@ main()
     printk("\n");
     printk("My first xv6 kernel modification by le xuan ngoc!\n");
     printk("\n");
+
+    printk("QEMU RISC-V & xv6 Environment Initialized!\n"); //Cm luồng boot QEMU->OpenSBI->xv6
+
     kinit();            // physical page allocator
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
