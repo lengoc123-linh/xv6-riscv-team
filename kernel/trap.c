@@ -56,6 +56,16 @@ usertrap(void)
 
     if (killed(p))
       kexit(-1);
+    
+    
+    if (p->trapframe->a7 != 16) {
+        printk("[W2] PID=%d scause=%d sepc=0x%lx syscall=%d\n",
+              p->pid,
+              (int)r_scause(),
+              r_sepc(),
+              (int)p->trapframe->a7);
+    }
+
 
     // sepc points to the ecall instruction,
     // but we want to return to the next instruction.

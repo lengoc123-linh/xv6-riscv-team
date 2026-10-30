@@ -1,0 +1,20 @@
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Chạy xv6 trên QEMU",
+      "type": "shell",
+      "command": "make qemu",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
