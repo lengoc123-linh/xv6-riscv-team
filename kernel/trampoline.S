@@ -41,7 +41,7 @@ uservec:
         sd sp, 48(a0)
         sd gp, 56(a0)
         sd tp, 64(a0)
-        sd t0, 72(a0)
+        sd t0, 72(a0) 
         sd t1, 80(a0)
         sd t2, 88(a0)
         sd s0, 96(a0)

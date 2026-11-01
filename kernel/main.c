@@ -32,7 +32,7 @@ main()
     fileinit();         // file table
     virtio_disk_init(); // emulated hard disk
     userinit();         // first user process
-
+    w2_test_vm();
     __atomic_store_n(&started, 1, __ATOMIC_RELEASE);
   } else {
     while (__atomic_load_n(&started, __ATOMIC_ACQUIRE) == 0)

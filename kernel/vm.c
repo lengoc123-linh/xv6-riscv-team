@@ -489,3 +489,48 @@ ismapped(pagetable_t pagetable, uint64 va)
   }
   return 0;
 }
+
+void
+w2_test_vm(void)
+{
+  // Tao Page Table va cap mot trang RAM vat ly
+  pagetable_t pt = (pagetable_t)kalloc();
+  char *pa = kalloc();
+  uint64 va = 0x4000;
+
+  if(pt == 0 || pa == 0)
+    panic("W2: kalloc failed");
+
+  memset(pt, 0, PGSIZE);
+
+  // Kiem tra truoc khi anh xa
+  if(walk(pt, va, 0) != 0)
+    panic("W2: unexpected PTE");
+
+  printk("[W2-VM] Before: no PTE at VA=0x%lx\n", va);
+
+  // Tao anh xa VA -> PA
+  if(mappages(pt, va, PGSIZE, (uint64)pa,
+              PTE_R | PTE_W | PTE_U) != 0)
+    panic("W2: mappages failed");
+
+  // Tim PTE vua tao
+  pte_t *pte = walk(pt, va, 0);
+
+  if(pte == 0 || !(*pte & PTE_V))
+    panic("W2: walk failed");
+
+  if(PTE2PA(*pte) != (uint64)pa)
+    panic("W2: wrong physical address");
+
+  printk("[W2-VM] After: VA=0x%lx PA=0x%lx PTE=0x%lx\n",
+         va, PTE2PA(*pte), (uint64)*pte);
+
+  // Giai phong bo nho thu nghiem
+  uvmunmap(pt, va, 1, 0);
+  uvmfree(pt, 0);
+  kfree(pa);
+
+  printk("[W2-VM] PASS: walk + mappages\n");
+}
+
