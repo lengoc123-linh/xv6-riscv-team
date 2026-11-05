@@ -190,6 +190,7 @@ fork1(void)
   int pid;
 
   pid = fork();
+  printf("[W3-FORK] mypid = %d , return_pid = %d\n " , pid , getpid());
   if (pid == -1)
     panic("fork");
   return pid;

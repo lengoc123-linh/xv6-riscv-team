@@ -35,7 +35,7 @@ trapinithart(void)
 // return value is user satp for trampoline.S to switch to.
 //
 uint64
-usertrap(void)
+usertrap(void) 
 {
   int which_dev = 0;
 
@@ -49,9 +49,9 @@ usertrap(void)
   struct proc *p = myproc();
 
   // save user program counter.
-  p->trapframe->epc = r_sepc();
+  p->trapframe->epc = r_sepc(); // luu dia chi chuong trinh user vaof trapframe 
 
-  if (r_scause() == 8) {
+  if (r_scause() == 8) { 
     // system call
 
     if (killed(p))
@@ -69,8 +69,7 @@ usertrap(void)
 
     // sepc points to the ecall instruction,
     // but we want to return to the next instruction.
-    p->trapframe->epc += 4;
-
+    p->trapframe->epc += 4; // ko chay lai ecall 
     // an interrupt will change sepc, scause, and sstatus,
     // so enable only now that we're done with those registers.
     intr_on();
@@ -93,7 +92,7 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if (which_dev == 2)
-    yield();
+    yield(); //cung tuong tu kernel trap khi xu li qua lau 
 
   prepare_return();
 
@@ -147,16 +146,17 @@ void
 kerneltrap()
 {
   int which_dev = 0;
-  uint64 sepc = r_sepc();
-  uint64 sstatus = r_sstatus();
-  uint64 scause = r_scause();
+  uint64 sepc = r_sepc(); // luu dia chi can tiep tuc khi xu li xong trap
+  uint64 sstatus = r_sstatus(); // luu thong tin trang thai dac quyen
+  uint64 scause = r_scause(); // cho biet nguyen nhan xu li trap 
 
-  if ((sstatus & SSTATUS_SPP) == 0)
+  if ((sstatus & SSTATUS_SPP) == 0) // co xuat phat tu s-mode ?
     panic("kerneltrap: not from supervisor mode");
   if (intr_get() != 0)
     panic("kerneltrap: interrupts enabled");
 
-  if ((which_dev = devintr()) == 0) {
+  if ((which_dev = devintr()) == 0) { 
+    // ham devintr xac dinh ngat chang han nhu time thi bang 2
     // interrupt or trap from an unknown source
     printk("scause=0x%lx sepc=0x%lx stval=0x%lx\n", scause, r_sepc(),
            r_stval());
@@ -164,12 +164,13 @@ kerneltrap()
   }
 
   // give up the CPU if this is a timer interrupt.
-  if (which_dev == 2 && myproc() != 0)
-    yield();
+  if (which_dev == 2 && myproc() != 0) // ngat timer 
+
+    yield(); // goi lai bat nhuong cpu // luc nay thanh ghi scause = 5
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.
-  w_sepc(sepc);
+  w_sepc(sepc); // khoi phuc dung lenh sau khi xu li ngat 
   w_sstatus(sstatus);
 }
 
@@ -195,9 +196,9 @@ clockintr()
 // 1 if other device,
 // 0 if not recognized.
 int
-devintr()
+devintr() // kiem tra nguyen nhan gay ra trap thong qua scause 
 {
-  uint64 scause = r_scause();
+  uint64 scause = r_scause(); // 64bit
 
   if (scause == 0x8000000000000009L) {
     // this is a supervisor external interrupt, via PLIC.
@@ -222,8 +223,8 @@ devintr()
     return 1;
   } else if (scause == 0x8000000000000005L) {
     // timer interrupt.
-    clockintr();
-    return 2;
+    clockintr(); // su kien dong ho , cap nhat so tick he thong va danh thuc tien trinh 
+    return 2; // gia tri that tuyet voi lap trinh vien de ra de phan biet ngat 
   } else {
     return 0;
   }

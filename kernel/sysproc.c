@@ -19,7 +19,9 @@ sys_exit(void)
 uint64
 sys_getpid(void)
 {
-  return myproc()->pid;
+  struct proc *p = myproc();
+  printk("[W3-GETPID] KERNEL : current PID  = %d\n" , p -> pid);
+  return p->pid;
 }
 uint64
 sys_hello(void)

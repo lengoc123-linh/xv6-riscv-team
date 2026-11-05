@@ -140,13 +140,22 @@ syscall(void)
   int num;
   struct proc *p = myproc();
 
-  num = p->trapframe->a7;
+  num = p->trapframe->a7; // lay so hieu thanh ghi a7 cua trong trap frame ghi vao 
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     
     // printk("Tien trinh '%s' (PID: %d) goi Syscall so: %d\n", p->name, p->pid, num); //Tương tác user - kernel
-    p->trapframe->a0 = syscalls[num]();
+
+  if(num == SYS_exec) {
+    printk("[W3] PID=%d entering exec, a7=%d\n",
+          p->pid, num);
+  }
+    p->trapframe->a0 = syscalls[num]();// tim ham trong bang syscalls sau do tra gia tri ve thanh ghi a0
+  if(num == SYS_exec) {
+    printk("[W3] PID=%d exec returned, a0=0x%lx\n",
+          p->pid, p->trapframe->a0);
+  }
   } else {
     printk("%d %s: unknown sys call %d\n", p->pid, p->name, num);
     p->trapframe->a0 = -1;

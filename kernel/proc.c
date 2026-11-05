@@ -350,7 +350,7 @@ kexit(int status)
   reparent(p);
 
   // Parent might be sleeping in wait().
-  wakeup(p->parent);
+  wakeup(p->parent); // danh thuc tien trinh con 
 
   acquire(&p->lock);
 
@@ -411,7 +411,23 @@ kwait(uint64 addr)
     }
 
     // Wait for a child to exit.
-    sleep_prepare(p); //DOC: wait-sleep
+
+    sleep_prepare(p);
+    release(&wait_lock);
+
+    // if(p->pid == 2) {
+    //   printk("[W3-WAIT] PID=2: entering wait sleep\n");
+    // }
+
+    // sleep();
+
+    // if(p->pid == 2) {
+    //   printk("[W3-WAIT] PID=2: returned from sleep\n");
+    // }
+
+    acquire(&wait_lock);
+
+    sleep_prepare(p); //DOC: wait-sleep // dang ki viec cho su kien lien quan den tien trinh cha 
     release(&wait_lock);
     sleep();
     acquire(&wait_lock);
@@ -426,12 +442,13 @@ kwait(uint64 addr)
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
 void
-scheduler(void)
+scheduler(void) // ham lua chon tien trinh 
 {
   struct proc *p;
-  struct cpu *c = mycpu();
+  struct cpu *c = mycpu(); // dang tro den cpu thuc thi hien tai 
 
-  c->proc = 0;
+  c->proc = 0; // hart hien tai khong con chay tien trinh p 
+  // scheduler tim kiem tien trinh khac 
   for (;;) {
     // The most recent process to run may have had interrupts
     // turned off; enable them to avoid a deadlock if all
@@ -443,15 +460,17 @@ scheduler(void)
 
     int found = 0;
     for (p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
+      acquire(&p->lock); // scheduler danh lai khoa
       if (p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
-        c->proc = p;
+        c->proc = p; // ghi nhan tien trinh nao dang duoc chay 
         swtch(&c->context, &p->context);
-
+        // ham swtch co tac dung 
+        // luu ngu canh cua tien trinh hien tai vao c-> context
+        // chuyen cpu tu schedule sang thuc thi tien trinh duoc chon
         // Don't re-enable interrupts on release.
         mycpu()->intena = 0;
 
@@ -460,7 +479,7 @@ scheduler(void)
         c->proc = 0;
         found = 1;
       }
-      release(&p->lock);
+      release(&p->lock); // phat hanh khoa 
     }
     if (found == 0) {
       // nothing to run; stop running on this core until an interrupt.
@@ -493,17 +512,28 @@ sched(void)
 
   intena = mycpu()->intena;
   swtch(&p->context, &mycpu()->context);
+  //&p->context : noi luu ngu canh cua tien trinh pid 2 ; &mycpu()->context noi luu ngu canh schedule tren hart hien tai 
+  // Ham switch thuc hien 2 cong viec 
+  // 1 Luu nhung thanh ghi cua pid 2 vao trong p-> context 
+  // 2 khoi phuc nhung thanh ghi da luu cua schedule tu mycpu -> context 
+
   mycpu()->intena = intena;
 }
 
 // Give up the CPU for one scheduling round.
 void
-yield(void)
+yield(void) // ham nhuong tien trinh 
 {
-  struct proc *p = myproc();
-  acquire(&p->lock);
-  p->state = RUNNABLE;
-  sched();
+  struct proc *p = myproc(); //lay tien trinh chay tren hart hien tai 
+  // static int debug_yield_count = 0;
+
+  // if(debug_yield_count < 10) {
+  //   debug_yield_count++;
+  //   printk("[W3-YIELD] PID=%d nhường CPU\n", p->pid);
+  // }
+  acquire(&p->lock);// gianh khoa cua tien trinh
+  p->state = RUNNABLE; // neu tien trinh tu nguyen nhuong cpu hoac nhuong cpu do timer no van co quyen duoc scheduler chon quay lai
+  sched(); // ? tai sao lai co thang nay // nhuong lai cpu 
   release(&p->lock);
 }
 
@@ -561,12 +591,12 @@ sleep_prepare(void *chan)
 void
 sleep(void)
 {
-  struct proc *p = myproc();
+  struct proc *p = myproc(); // giu nguyen dia chi cua tien trinh cha 
 
   acquire(&p->lock);
   if (p->chan != 0) {
-    p->state = SLEEPING;
-    sched();
+    p->state = SLEEPING; // danh dau tien trinh dang ngu
+    sched(); // chuyen quyen dieu khien cua no sang schedule de chay tien trinh khac 
   }
   release(&p->lock);
 }
@@ -678,12 +708,12 @@ procdump(void)
 {
   static char *states[] = {
     // clang-format off
-    [UNUSED]    = "unused",
-    [USED]      = "used",
-    [SLEEPING]  = "sleep ",
-    [RUNNABLE]  = "runble",
-    [RUNNING]   = "run   ",
-    [ZOMBIE]    = "zombie"
+    [UNUSED]    = "unused", // o quan li chua dc su dung
+    [USED]      = "used", // duoc cap phat nhung chua san sang chay 
+    [SLEEPING]  = "sleep ", // dang cho mot dieu kien hoac su kien 
+    [RUNNABLE]  = "runble", // tien trinh san sang duoc schedule chon 
+    [RUNNING]   = "run   ", // tien trinh san sang chay 
+    [ZOMBIE]    = "zombie" // da ket thuc nhung chua duoc thu hoi 
     // clang-format on
   };
   struct proc *p;
