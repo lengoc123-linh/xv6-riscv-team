@@ -4,6 +4,7 @@
 #include "riscv.h"
 #include "defs.h"
 #include "guest.h"
+#include "gstage.h"
 volatile static int started = 0;
 static struct guest demo_guest ;
 // start() jumps here in supervisor mode on all CPUs.
@@ -35,6 +36,18 @@ main()
       panic("guest ram phan bo that bai");
     }
     printk("khoi tao test ram o guest thanh cong ");
+
+    printk("\n[W4-GSTAGE] Starting G-stage mapping test\n");
+
+    if(gstage_build(&demo_guest) < 0){
+        panic("[W4-GSTAGE] Build failed");
+    }
+
+    if(gstage_check(&demo_guest) < 0){
+        panic("[W4-GSTAGE] Verification failed");
+    }
+
+
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
     procinit();         // process table
