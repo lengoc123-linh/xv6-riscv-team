@@ -3,9 +3,9 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
-
+#include "guest.h"
 volatile static int started = 0;
-
+static struct guest demo_guest ;
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
@@ -28,9 +28,13 @@ main()
     printk("[H-TEST] CSR test completed successfully\n");
     printk("\n");
 
-    printk("QEMU RISC-V & xv6 Environment Initialized!\n"); //Cm luồng boot QEMU->OpenSBI->xv6
-
+    // printk("QEMU RISC-V & xv6 Environment Initialized!\n"); //Cm luồng boot QEMU->OpenSBI->xv6
     kinit();            // physical page allocator
+    printk("bat dau khoi chay ram test\n");
+    if(guest_ram_init(&demo_guest) < 0 ){
+      panic("guest ram phan bo that bai");
+    }
+    printk("khoi tao test ram o guest thanh cong ");
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
     procinit();         // process table
