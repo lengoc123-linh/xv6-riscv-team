@@ -412,25 +412,18 @@ kwait(uint64 addr)
 
     // Wait for a child to exit.
 
+    if(p->pid == 2) {
+      printk("[W3-WAIT] PID=2: entering wait sleep\n");
+    }
+
     sleep_prepare(p);
-    release(&wait_lock);
-
-    // if(p->pid == 2) {
-    //   printk("[W3-WAIT] PID=2: entering wait sleep\n");
-    // }
-
-    // sleep();
-
-    // if(p->pid == 2) {
-    //   printk("[W3-WAIT] PID=2: returned from sleep\n");
-    // }
-
-    acquire(&wait_lock);
-
-    sleep_prepare(p); //DOC: wait-sleep // dang ki viec cho su kien lien quan den tien trinh cha 
     release(&wait_lock);
     sleep();
     acquire(&wait_lock);
+
+    if(p->pid == 2) {
+      printk("[W3-WAIT] PID=2: returned from sleep\n");
+    }
   }
 }
 

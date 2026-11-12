@@ -89,6 +89,20 @@ r_sip()
   return x;
 }
 
+static inline uint64
+r_hstatus(void)
+{
+  uint64 x;
+  asm volatile("csrr %0, 0x600" : "=r" (x));
+  return x;
+}
+static inline uint64
+r_hgatp(void)
+{
+  uint64 x;
+  asm volatile("csrr %0, 0x680" : "=r"(x));
+  return x;
+}
 static inline void
 w_sip(uint64 x)
 {
