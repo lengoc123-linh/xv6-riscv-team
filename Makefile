@@ -10,6 +10,9 @@ OBJS = \
   $K/kalloc.o \
   $K/guest.o \
   $K/gstage.o \
+  $K/guest_run.o \
+$K/guest_enter.o \
+$K/guest_payload.o \
   $K/spinlock.o \
   $K/string.o \
   $K/main.o \

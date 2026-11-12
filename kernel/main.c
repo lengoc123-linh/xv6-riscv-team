@@ -101,6 +101,19 @@ main()
 
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
+
+    trapinit();
+    trapinithart();
+
+    // THUC HANH 6: CHAY GUEST VS-MODE
+    printk("\n[W4-VS] Starting VS-mode test\n");
+
+    if(guest_run(&demo_guest) < 0){
+        panic("[W4-VS] Guest test failed");
+    }
+
+    printk("[W4-VS] Returned to Host successfully\n");
+
     procinit();         // process table
     trapinit();         // trap vectors
     trapinithart();     // install kernel trap vector

@@ -96,6 +96,16 @@ r_hstatus(void)
   asm volatile("csrr %0, 0x600" : "=r" (x));
   return x;
 }
+
+static inline void
+w_hstatus(uint64 x)
+{
+    asm volatile("csrw 0x600, %0"
+                 :
+                 : "r"(x)
+                 : "memory");
+}
+
 static inline uint64
 r_hgatp(void)
 {

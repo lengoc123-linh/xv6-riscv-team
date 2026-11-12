@@ -15,5 +15,5 @@ struct guest {
 
 int guest_ram_init(struct guest *g);
 void guest_ram_free(struct guest *g);
-
+int guest_run(struct guest *g);
 #endif
