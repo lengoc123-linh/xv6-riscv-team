@@ -47,6 +47,57 @@ main()
         panic("[W4-GSTAGE] Verification failed");
     }
 
+    printk("\n[W4-HGATP] Starting hgatp configuration test\n");
+
+    // Lay dia chi bang trang goc G-stage
+    uint64 root_pa = gstage_root_pa();
+
+    // Kiem tra can chinh 16 KiB
+    if(root_pa & (16384UL - 1)){
+        panic("[W4-HGATP] Root alignment error");
+    }
+
+    // Luu gia tri hgatp ban dau
+    uint64 old_hgatp = r_hgatp();
+
+    // MODE = 8 (Sv39x4), VMID = 0
+    // PPN = root_pa >> 12
+    uint64 new_hgatp =
+        (8ULL << 60) |
+        ((root_pa >> 12) & ((1ULL << 44) - 1));
+
+    printk("[W4-HGATP] Root PA = 0x%lx\n", root_pa);
+    printk("[W4-HGATP] Old hgatp = 0x%lx\n", old_hgatp);
+    printk("[W4-HGATP] Expected hgatp = 0x%lx\n", new_hgatp);
+
+    // Ghi thanh ghi
+    w_hgatp(new_hgatp);
+
+    // Doc lai de kiem tra
+    uint64 readback = r_hgatp();
+
+    // Khoi phuc ngay gia tri cu
+    w_hgatp(old_hgatp);
+
+    printk("[W4-HGATP] Readback = 0x%lx\n", readback);
+    printk("[W4-HGATP] Restored = 0x%lx\n", r_hgatp());
+
+    // Kiem tra MODE va PPN
+    uint64 mode = (readback >> 60) & 0xF;
+    uint64 ppn = readback & ((1ULL << 44) - 1);
+
+    if(mode != 8 || ppn != (root_pa >> 12)){
+        panic("[W4-HGATP] Configuration failed");
+    }
+
+    if(r_hgatp() != old_hgatp){
+        panic("[W4-HGATP] Restore failed");
+    }
+
+    printk("[W4-HGATP] MODE = %ld\n", mode);
+    printk("[W4-HGATP] PPN = 0x%lx\n", ppn);
+    printk("[W4-HGATP] TEST PASS\n");
+
 
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging

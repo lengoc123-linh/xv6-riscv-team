@@ -103,6 +103,16 @@ r_hgatp(void)
   asm volatile("csrr %0, 0x680" : "=r"(x));
   return x;
 }
+
+static inline void
+w_hgatp(uint64 x)
+{
+  asm volatile("csrw 0x680, %0"
+               :
+               : "r"(x)
+               : "memory");
+}
+
 static inline void
 w_sip(uint64 x)
 {
