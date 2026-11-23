@@ -28,7 +28,11 @@ start()
   w_satp(0);
 
   // delegate all interrupts and exceptions to supervisor mode.
-  w_medeleg(0xffff);
+  w_medeleg(0xffffUL |
+            (1UL << 20) |
+            (1UL << 21) |
+            (1UL << 22) |
+            (1UL << 23));
   w_mideleg(0xffff);
   w_sie(r_sie() | SIE_SEIE | SIE_STIE);
 

@@ -214,6 +214,33 @@ guest_run(struct guest *g)
     printk("[W4-VS] stval=0x%lx htval=0x%lx\n",
            info.stval, info.htval);
 
+
+    // Week 5: Kiem thu Guest Memory Isolation
+    if(info.scause == 21)
+    {
+        uint64 expected_gpa = 0x40004000UL;
+
+        printk("[W5-FAULT] Load guest-page fault detected\n");
+        printk("[W5-FAULT] scause = %ld\n", info.scause);
+        printk("[W5-FAULT] sepc = 0x%lx\n", info.sepc);
+        printk("[W5-FAULT] stval = 0x%lx\n", info.stval);
+        printk("[W5-FAULT] htval = 0x%lx\n", info.htval);
+        printk("[W5-FAULT] hstatus = 0x%lx\n",
+               info.hstatus);
+
+        if((info.hstatus & TEST_SPV) &&
+           (info.stval == expected_gpa ||
+            info.htval == (expected_gpa >> 2)))
+        {
+            printk("[W5-FAULT] TEST PASS: Guest memory isolation\n");
+            printk("[W5-FAULT] Returned to Host safely\n");
+            return 0;
+        }
+
+        printk("[W5-FAULT] TEST FAIL: Unexpected trap state\n");
+        return -1;
+    }
+
     // Kiem chung Guest VS-ECALL
     if(info.scause == 10 &&
        (info.hstatus & TEST_SPV) &&
