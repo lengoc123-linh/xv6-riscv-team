@@ -70,7 +70,7 @@ gstage_walk(uint64 gpa, int alloc)
 
 // Anh xa mot trang GPA sang HostPA
 static int
-gstage_map_one(uint64 gpa, uint64 hpa)
+gstage_map_one(uint64 gpa, uint64 hpa, uint64 perm)
 {
     if((gpa | hpa) & (PGSIZE - 1))
         return -1;
@@ -80,9 +80,7 @@ gstage_map_one(uint64 gpa, uint64 hpa)
     if(pte == 0 || (*pte & GS_V))
         return -1;
 
-    uint64 flags =
-        GS_V | GS_R | GS_W | GS_X |
-        GS_U | GS_A | GS_D;
+    uint64 flags = GS_V | GS_U | GS_A | GS_D | perm;
 
     *pte = ((hpa >> 12) << 10) | flags;
 
@@ -115,8 +113,21 @@ gstage_build(struct guest *g)
         uint64 gpa = g->gpa_base + (uint64)i * PGSIZE;
         uint64 hpa = (uint64)g->ram_pages[i];
 
-        if(gstage_map_one(gpa, hpa) < 0)
+        uint64 perm;
+
+        if(i == 0)
+            perm = GS_R | GS_X;  // Code: Read + Execute
+        else
+            perm = GS_R | GS_W;  // Data/Stack: Read + Write
+
+        if(gstage_map_one(gpa, hpa, perm) < 0)
             return -1;
+
+        printk("[W5-RWX] Page %d: R=%d W=%d X=%d\\n",
+               i,
+               (perm & GS_R) != 0,
+               (perm & GS_W) != 0,
+               (perm & GS_X) != 0);
 
         printk("[W4-GSTAGE] Mapped page %d\n", i);
     }
@@ -139,8 +150,17 @@ gstage_check(struct guest *g)
         if(pte == 0 || !(*pte & GS_V))
             return -1;
 
-        if((*pte & (GS_R | GS_W | GS_U)) !=
-           (GS_R | GS_W | GS_U))
+        uint64 expected_perm;
+
+        if(i == 0)
+            expected_perm = GS_R | GS_X;
+        else
+            expected_perm = GS_R | GS_W;
+
+        if((*pte & (GS_R | GS_W | GS_X)) != expected_perm)
+            return -1;
+
+        if((*pte & GS_U) == 0)
             return -1;
 
         uint64 actual_hpa = (*pte >> 10) << 12;
@@ -153,7 +173,8 @@ gstage_check(struct guest *g)
                i, gpa, actual_hpa);
     }
 
-    printk("[W4-GSTAGE] All mappings verified\n");
+    printk("[W4-GSTAGE] All mappings verified\\n");
+    printk("[W5-RWX] TEST PASS: R/W/X permissions verified\\n");
 
     return 0;
 }
