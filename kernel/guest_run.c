@@ -1,3 +1,4 @@
+#include "vcpu.h"
 
 #include "types.h"
 #include "riscv.h"
@@ -131,6 +132,9 @@ guest_run(struct guest *g)
     struct vmexit_info info;
     memset(&info, 0, sizeof(info));
 
+    struct vcpu_state vcpu;
+    memset(&vcpu, 0, sizeof(vcpu));
+
     // Luu trang thai Host
     uint64 old_sstatus = r_sstatus();
     uint64 old_sie = r_sie();
@@ -215,7 +219,32 @@ guest_run(struct guest *g)
            info.stval, info.htval);
 
 
-    // Week 5: Kiem thu Guest Memory Isolation
+    
+    // Week 5 - vCPU state snapshot
+    vcpu.pc = info.sepc;
+    vcpu.scause = info.scause;
+    vcpu.stval = info.stval;
+    vcpu.htval = info.htval;
+    vcpu.hstatus = info.hstatus;
+
+    vcpu.gpr[VCPU_REG_A0] = info.guest_a0;
+    vcpu.gpr[VCPU_REG_SP] = info.guest_sp;
+
+    vcpu.valid_gpr_mask =
+        (1UL << VCPU_REG_A0) |
+        (1UL << VCPU_REG_SP);
+
+    printk("[W5-VCPU] Snapshot captured\n");
+    printk("[W5-VCPU] Guest PC = 0x%lx\n", vcpu.pc);
+    printk("[W5-VCPU] Guest a0 = %ld\n",
+           vcpu.gpr[VCPU_REG_A0]);
+    printk("[W5-VCPU] Guest SP = 0x%lx\n",
+           vcpu.gpr[VCPU_REG_SP]);
+    printk("[W5-VCPU] scause = %ld\n", vcpu.scause);
+    printk("[W5-VCPU] hstatus = 0x%lx\n",
+           vcpu.hstatus);
+
+// Week 5: Kiem thu Guest Memory Isolation
     if(info.scause == 21)
     {
         uint64 expected_gpa = 0x40004000UL;
